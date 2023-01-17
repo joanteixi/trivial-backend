@@ -4,7 +4,7 @@ const io = require('socket.io')(httpServer, {
     cors: { origin: '*' }
 });
 
-const port = 3000;
+const port = 80;
 
 
 const { addUser, removeUser, getUser,

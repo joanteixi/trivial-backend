@@ -28,6 +28,10 @@ const removeUser = (id) => {
 	}
 }
 
+const reset = () => {
+	users = []
+}
+
 const getUser = (id) => users
 		.find((user) => user.id === id);
 

@@ -4,11 +4,11 @@ const io = require('socket.io')(httpServer, {
     cors: { origin: '*' }
 });
 
-const port = 3000;
+const port = 80;
 
 
 const { setMaxIdleHTTPParsers } = require('http');
-const { addUser, removeUser, getUser,
+const { addUser, removeUser, reset,
     getUsersInRoom } = require("./users");
 
 const ranking = {}
@@ -25,6 +25,13 @@ io.on('connection', (socket) => {
     socket.on('check', (room) => {
         console.log('id', socket.id)
     })
+
+    socket.on('reset', (room) => {
+        ranking = {}
+        results = {}
+        reset()
+    })
+
 
     let currentQuestion = 0;
 

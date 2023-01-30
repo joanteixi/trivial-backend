@@ -4,19 +4,19 @@ const io = require('socket.io')(httpServer, {
     cors: { origin: '*' }
 });
 
-const port = 80;
+const port = 3000;
 
 
+const { setMaxIdleHTTPParsers } = require('http');
 const { addUser, removeUser, getUser,
     getUsersInRoom } = require("./users");
 
 const ranking = {}
-
-
 const questions = [
     { question: "What is the capital of France?", options: ["Paris", "Rome", "London", "Madrid"], answer: "Paris" },
     { question: "What is the highest mountain in the world?", options: ["Mount Everest", "K2", "Kangchenjunga", "Lhotse"], answer: "Mount Everest" },
     { question: "Who painted the Mona Lisa?", options: ["Leonardo da Vinci", "Michelangelo", "Raphael", "Vincent van Gogh"], answer: "Leonardo da Vinci" }];
+const results = {}
 
 
 io.on('connection', (socket) => {
@@ -36,6 +36,7 @@ io.on('connection', (socket) => {
         if (error) return callback(error);
 
         ranking[username] = 0
+        results[username] = ''
 
         // Emit will send message to the user
         // who had joined
@@ -64,11 +65,16 @@ io.on('connection', (socket) => {
     })
 
     socket.on('begin', (room) => {
-        timeInteval = 10000
-        io.in(room).emit('new_question', { 'question': questions[currentQuestion], 'ranking': ranking });
         
+        timeInterval = 10000
+        questionTime = timeInterval - 5000
+
+        io.in(room).emit('new_question', { 'question': questions[currentQuestion], 'ranking': ranking });
+        setTimeout(function() {
+            io.in(room).emit('answer_results', {'results': results, 'ranking': ranking})
+        }, questionTime)
+
         const questionInterval = setInterval(() => {
-            console.log('currentQuestion', currentQuestion)
             currentQuestion++
             
             if ((currentQuestion) >= questions.length) {
@@ -77,20 +83,24 @@ io.on('connection', (socket) => {
                 io.in(room).emit('game_over', { 'ranking': ranking });
             } else {
                 io.in(room).emit('new_question', { 'question': questions[currentQuestion], 'ranking': ranking });
+                setTimeout(function() {
+                    io.in(room).emit('answer_results', {'results': results, 'ranking': ranking})
+                }, questionTime)
             }
 
-        }, timeInteval)
+        }, timeInterval)
     })
 
 
     socket.on('answer', (answer, name) => {
 
+        results[name] = answer
         if (answer === questions[currentQuestion].answer) {
             ranking[name] += 1000
 
-            socket.emit('result', 'correct');
-        } else {
-            socket.emit('result', 'incorrect');
+           // socket.emit('result', {'result': 'correct', 'answers': answers);
+        //} else {
+        //   socket.emit('result', 'incorrect');
         }
     });
 

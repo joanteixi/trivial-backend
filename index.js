@@ -11,12 +11,12 @@ const { setMaxIdleHTTPParsers } = require('http');
 const { addUser, removeUser, reset,
     getUsersInRoom } = require("./users");
 
-const ranking = {}
+let ranking = {}
 const questions = [
     { question: "What is the capital of France?", options: ["Paris", "Rome", "London", "Madrid"], answer: "Paris" },
     { question: "What is the highest mountain in the world?", options: ["Mount Everest", "K2", "Kangchenjunga", "Lhotse"], answer: "Mount Everest" },
     { question: "Who painted the Mona Lisa?", options: ["Leonardo da Vinci", "Michelangelo", "Raphael", "Vincent van Gogh"], answer: "Leonardo da Vinci" }];
-const results = {}
+let results = {}
 
 
 io.on('connection', (socket) => {

@@ -1,4 +1,8 @@
+const fs = require('fs');
+const csv = require('csv-parser');
+
 const app = require('express')();
+
 const httpServer = require('http').createServer(app);
 const io = require('socket.io')(httpServer, {
     cors: { origin: '*' }
@@ -12,16 +16,51 @@ const { addUser, removeUser, reset,
     getUsersInRoom } = require("./users");
 
 let ranking = {}
-const questions = [
+let results = {}
+let questions = {}
+let questions2 = [
     { question: "What is the capital of France?", options: ["Paris", "Rome", "London", "Madrid"], answer: "Paris" },
     { question: "What is the highest mountain in the world?", options: ["Mount Everest", "K2", "Kangchenjunga", "Lhotse"], answer: "Mount Everest" },
     { question: "Who painted the Mona Lisa?", options: ["Leonardo da Vinci", "Michelangelo", "Raphael", "Vincent van Gogh"], answer: "Leonardo da Vinci" }];
-let results = {}
+
+function selectRandomRows(numRowsToSelect) {
+    const results = [];
+
+    return new Promise((resolve, reject) => {
+        fs.createReadStream('questions.csv')
+            .pipe(csv())
+            .on('data', (data) => results.push(data))
+            .on('end', () => {
+                // Randomly select a number of rows
+                const selectedRows = [];
+                for (let i = 0; i < numRowsToSelect; i++) {
+                    const randomIndex = Math.floor(Math.random() * results.length);
+                    let el = results[randomIndex]
+                    el['answers'] = eval(el['answers']);
+      
+                    
+                    selectedRows.push(el);
+                    results.splice(randomIndex, 1);
+                }
+                resolve(selectedRows);
+            });
+    });
+}
+
+// Call the function to select 10 random rows from the data.csv file
+selectRandomRows(10)
+    .then(selectedRows => {
+        questions = selectedRows;
+        console.log('random', questions);
+    })
+    .catch(error => console.error(error));
+// Call the function to select 10 random rows from the data.csv file
+
 
 
 io.on('connection', (socket) => {
     socket.join('room1');
-
+    
     socket.on('check', (room) => {
         console.log('id', socket.id)
     })
@@ -30,6 +69,15 @@ io.on('connection', (socket) => {
         ranking = {}
         results = {}
         reset()
+        selectRandomRows(10)
+    .then(selectedRows => {
+        questions = selectedRows;
+        console.log('random', questions);
+    })
+    .catch(error => console.error(error));
+// Call the function to select 10 random rows from the data.csv file
+
+
     })
 
 
@@ -72,26 +120,25 @@ io.on('connection', (socket) => {
     })
 
     socket.on('begin', (room) => {
-        
+
         timeInterval = 10000
         questionTime = timeInterval - 5000
-
         io.in(room).emit('new_question', { 'question': questions[currentQuestion], 'ranking': ranking });
-        setTimeout(function() {
-            io.in(room).emit('answer_results', {'results': results, 'ranking': ranking})
+        setTimeout(function () {
+            io.in(room).emit('answer_results', { 'results': results, 'ranking': ranking })
         }, questionTime)
 
         const questionInterval = setInterval(() => {
             currentQuestion++
-            
+
             if ((currentQuestion) >= questions.length) {
                 clearInterval(questionInterval)
                 console.log('gamover')
                 io.in(room).emit('game_over', { 'ranking': ranking });
             } else {
                 io.in(room).emit('new_question', { 'question': questions[currentQuestion], 'ranking': ranking });
-                setTimeout(function() {
-                    io.in(room).emit('answer_results', {'results': results, 'ranking': ranking})
+                setTimeout(function () {
+                    io.in(room).emit('answer_results', { 'results': results, 'ranking': ranking })
                 }, questionTime)
             }
 
@@ -102,12 +149,12 @@ io.on('connection', (socket) => {
     socket.on('answer', (answer, name) => {
 
         results[name] = answer
-        if (answer === questions[currentQuestion].answer) {
+        if (answer === questions[currentQuestion].good_answer) {
             ranking[name] += 1000
 
-           // socket.emit('result', {'result': 'correct', 'answers': answers);
-        //} else {
-        //   socket.emit('result', 'incorrect');
+            // socket.emit('result', {'result': 'correct', 'answers': answers);
+            //} else {
+            //   socket.emit('result', 'incorrect');
         }
     });
 

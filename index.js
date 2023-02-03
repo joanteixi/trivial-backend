@@ -121,7 +121,7 @@ io.on('connection', (socket) => {
 
     socket.on('begin', (room) => {
 
-        timeInterval = 20000
+        timeInterval = 15000
         questionTime = timeInterval - 5000
         io.in(room).emit('new_question', { 'question': questions[currentQuestion], 'ranking': ranking });
         setTimeout(function () {

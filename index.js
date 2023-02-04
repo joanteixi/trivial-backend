@@ -17,11 +17,11 @@ const { addUser, removeUser, reset,
 
 let ranking = {}
 let results = {}
-// let questions = {}
-let questions = [
-    { question: "What is the capital of France?", answers: ["Paris", "Rome", "London", "Madrid"], good_answer: "Paris" },
-    { question: "What is the highest mountain in the world?", answers: ["Mount Everest", "K2", "Kangchenjunga", "Lhotse"], good_answer: "Mount Everest" },
-    { question: "Who painted the Mona Lisa?", answers: ["Leonardo da Vinci", "Michelangelo", "Raphael", "Vincent van Gogh"], good_answer: "Leonardo da Vinci" }];
+let questions = []
+// let questions = [
+//     { question: "What is the capital of France?", answers: ["Paris", "Rome", "London", "Madrid"], good_answer: "Paris" },
+//     { question: "What is the highest mountain in the world?", answers: ["Mount Everest", "K2", "Kangchenjunga", "Lhotse"], good_answer: "Mount Everest" },
+//     { question: "Who painted the Mona Lisa?", answers: ["Leonardo da Vinci", "Michelangelo", "Raphael", "Vincent van Gogh"], good_answer: "Leonardo da Vinci" }];
 
 function selectRandomRows(numRowsToSelect) {
     const results = [];
@@ -50,7 +50,7 @@ function selectRandomRows(numRowsToSelect) {
 // Call the function to select 10 random rows from the data.csv file
 selectRandomRows(10)
     .then(selectedRows => {
-//        questions = selectedRows;
+        questions = selectedRows;
     })
     .catch(error => console.error(error));
 // Call the function to select 10 random rows from the data.csv file
@@ -155,8 +155,7 @@ io.on('connection', (socket) => {
     socket.on('answer', (answer, name) => {
 
         results[name] = answer
-        console.log('answer', questions[currentQuestion])
-        console.log('goodone', good_answer)
+       
         if (answer === good_answer) {
             ranking[name] += 1000
             console.log('rank', ranking)

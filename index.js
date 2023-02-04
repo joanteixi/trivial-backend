@@ -37,8 +37,8 @@ function selectRandomRows(numRowsToSelect) {
                     const randomIndex = Math.floor(Math.random() * results.length);
                     let el = results[randomIndex]
                     el['answers'] = eval(el['answers']);
-      
-                    
+
+
                     selectedRows.push(el);
                     results.splice(randomIndex, 1);
                 }
@@ -60,7 +60,7 @@ selectRandomRows(10)
 
 io.on('connection', (socket) => {
     socket.join('room1');
-    
+
     socket.on('check', (room) => {
         console.log('id', socket.id)
     })
@@ -70,12 +70,12 @@ io.on('connection', (socket) => {
         results = {}
         reset()
         selectRandomRows(10)
-    .then(selectedRows => {
-        questions = selectedRows;
-        console.log('random', questions);
-    })
-    .catch(error => console.error(error));
-// Call the function to select 10 random rows from the data.csv file
+            .then(selectedRows => {
+                questions = selectedRows;
+                console.log('random', questions);
+            })
+            .catch(error => console.error(error));
+        // Call the function to select 10 random rows from the data.csv file
 
 
     })
@@ -123,9 +123,12 @@ io.on('connection', (socket) => {
 
         timeInterval = 15000
         questionTime = timeInterval - 5000
-        io.in(room).emit('new_question', { 'question': questions[currentQuestion], 'ranking': ranking });
+        let toSend = questions[currentQuestion]
+        let answer = toSend.good_answer
+        delete toSend.good_answer
+        io.in(room).emit('new_question', { 'question': toSend, 'ranking': ranking });
         setTimeout(function () {
-            io.in(room).emit('answer_results', { 'results': results, 'ranking': ranking })
+            io.in(room).emit('answer_results', { 'results': results, 'ranking': ranking,  'answer': answer })
         }, questionTime)
 
         const questionInterval = setInterval(() => {
@@ -136,9 +139,13 @@ io.on('connection', (socket) => {
                 console.log('gamover')
                 io.in(room).emit('game_over', { 'ranking': ranking });
             } else {
-                io.in(room).emit('new_question', { 'question': questions[currentQuestion], 'ranking': ranking });
+                let toSend = questions[currentQuestion]
+                let answer = toSend.good_answer
+                delete toSend.good_answer
+
+                io.in(room).emit('new_question', { 'question': toSend, 'ranking': ranking });
                 setTimeout(function () {
-                    io.in(room).emit('answer_results', { 'results': results, 'ranking': ranking })
+                    io.in(room).emit('answer_results', { 'results': results, 'ranking': ranking, 'answer': answer })
                 }, questionTime)
             }
 

@@ -17,11 +17,11 @@ const { addUser, removeUser, reset,
 
 let ranking = {}
 let results = {}
-let questions = {}
-let questions2 = [
-    { question: "What is the capital of France?", options: ["Paris", "Rome", "London", "Madrid"], answer: "Paris" },
-    { question: "What is the highest mountain in the world?", options: ["Mount Everest", "K2", "Kangchenjunga", "Lhotse"], answer: "Mount Everest" },
-    { question: "Who painted the Mona Lisa?", options: ["Leonardo da Vinci", "Michelangelo", "Raphael", "Vincent van Gogh"], answer: "Leonardo da Vinci" }];
+// let questions = {}
+let questions = [
+    { question: "What is the capital of France?", answers: ["Paris", "Rome", "London", "Madrid"], good_answer: "Paris" },
+    { question: "What is the highest mountain in the world?", answers: ["Mount Everest", "K2", "Kangchenjunga", "Lhotse"], good_answer: "Mount Everest" },
+    { question: "Who painted the Mona Lisa?", answers: ["Leonardo da Vinci", "Michelangelo", "Raphael", "Vincent van Gogh"], good_answer: "Leonardo da Vinci" }];
 
 function selectRandomRows(numRowsToSelect) {
     const results = [];
@@ -50,8 +50,7 @@ function selectRandomRows(numRowsToSelect) {
 // Call the function to select 10 random rows from the data.csv file
 selectRandomRows(10)
     .then(selectedRows => {
-        questions = selectedRows;
-        console.log('random', questions);
+//        questions = selectedRows;
     })
     .catch(error => console.error(error));
 // Call the function to select 10 random rows from the data.csv file
@@ -82,7 +81,7 @@ io.on('connection', (socket) => {
 
 
     let currentQuestion = 0;
-
+    let good_answer = ''
     socket.on('join_game', ({ room, username }, callback) => {
         console.log('join_game', username)
         const { error, user } = addUser(
@@ -124,11 +123,11 @@ io.on('connection', (socket) => {
         timeInterval = 15000
         questionTime = timeInterval - 5000
         let toSend = questions[currentQuestion]
-        let answer = toSend.good_answer
+        good_answer = toSend.good_answer
         delete toSend.good_answer
         io.in(room).emit('new_question', { 'question': toSend, 'ranking': ranking });
         setTimeout(function () {
-            io.in(room).emit('answer_results', { 'results': results, 'ranking': ranking,  'answer': answer })
+            io.in(room).emit('answer_results', { 'results': results, 'ranking': ranking,  'answer': good_answer })
         }, questionTime)
 
         const questionInterval = setInterval(() => {
@@ -140,12 +139,12 @@ io.on('connection', (socket) => {
                 io.in(room).emit('game_over', { 'ranking': ranking });
             } else {
                 let toSend = questions[currentQuestion]
-                let answer = toSend.good_answer
+                good_answer = toSend.good_answer
                 delete toSend.good_answer
 
                 io.in(room).emit('new_question', { 'question': toSend, 'ranking': ranking });
                 setTimeout(function () {
-                    io.in(room).emit('answer_results', { 'results': results, 'ranking': ranking, 'answer': answer })
+                    io.in(room).emit('answer_results', { 'results': results, 'ranking': ranking, 'answer': good_answer })
                 }, questionTime)
             }
 
@@ -156,8 +155,11 @@ io.on('connection', (socket) => {
     socket.on('answer', (answer, name) => {
 
         results[name] = answer
-        if (answer === questions[currentQuestion].good_answer) {
+        console.log('answer', questions[currentQuestion])
+        console.log('goodone', good_answer)
+        if (answer === good_answer) {
             ranking[name] += 1000
+            console.log('rank', ranking)
 
             // socket.emit('result', {'result': 'correct', 'answers': answers);
             //} else {
